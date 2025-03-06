@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-
 import Form from "@components/Form";
 
-const EditPrompt = () => {
+// Loading component to display while waiting
+const LoadingPromptEdit = () => {
+    return <div className="flex-center">Loading prompt editor...</div>;
+};
+
+// The main component that uses searchParams
+const EditPromptContent = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const promptId = searchParams.get("id");
@@ -15,7 +19,7 @@ const EditPrompt = () => {
     const [post, setPost] = useState({ prompt: "", tag: "" });
 
     useEffect(() => {
-        const getPromptDatails = async () => {
+        const getPromptDetails = async () => {
             const response = await fetch(`/api/prompt/${promptId}`);
             const data = await response.json();
 
@@ -25,7 +29,7 @@ const EditPrompt = () => {
             });
         }
 
-        if (promptId) getPromptDatails();
+        if (promptId) getPromptDetails();
     }, [promptId]);
 
     const updatePrompt = async (e) => {
@@ -48,7 +52,6 @@ const EditPrompt = () => {
         } finally {
             setIsSubmitting(false);
         }
-
     };
 
     return (
@@ -59,6 +62,15 @@ const EditPrompt = () => {
             submitting={submitting}
             handleSubmit={updatePrompt}
         />
+    );
+};
+
+// Wrapper component with Suspense boundary
+const EditPrompt = () => {
+    return (
+        <Suspense fallback={<LoadingPromptEdit />}>
+            <EditPromptContent />
+        </Suspense>
     );
 };
 
